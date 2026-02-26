@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOHIT.EXE — Portfolio OS v2.5</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --green: #00ff41;
+      --cyan: #00ffff;
+      --red: #ff003c;
+      --yellow: #ffff00;
+      --orange: #ff6600;
+      --bg: #0a0a0a;
+      --bg2: #0d1117;
+      --panel: rgba(0, 255, 65, 0.05);
+      --border: rgba(0, 255, 65, 0.3);
+      --glow: 0 0 10px rgba(0, 255, 65, 0.5), 0 0 30px rgba(0, 255, 65, 0.2);
+      --red-glow: 0 0 10px rgba(255, 0, 60, 0.8), 0 0 30px rgba(255, 0, 60, 0.4);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+      height: 100vh;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='3' fill='%2300ff41'/%3E%3Ccircle cx='10' cy='10' r='7' fill='none' stroke='%2300ff41' stroke-width='1'/%3E%3C/svg%3E") 10 10, crosshair;
+    }
+
+    body::selection{
+      background: var(--border);
+    }
+
+    /* SCANLINES */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.08) 2px, rgba(0, 0, 0, 0.08) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* CRT FLICKER */
+    @keyframes flicker {
+
+      0%,
+      95%,
+      100% {
+        opacity: 1;
+      }
+
+      96% {
+        opacity: 0.95;
+      }
+
+      97% {
+        opacity: 1;
+      }
+
+      98% {
+        opacity: 0.9;
+      }
+    }
+
+    body {
+      animation: flicker 8s infinite;
+    }
+
+    /* BOOT SCREEN */
+    #boot-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'VT323', monospace;
+      font-size: 1.4rem;
+    }
+
+    .boot-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--green);
+      text-shadow: var(--glow);
+      margin-bottom: 2rem;
+      letter-spacing: 0.3em;
+    }
+
+    .boot-line {
+      color: var(--green);
+      opacity: 0;
+      animation: bootAppear 0.1s forwards;
+      width: 500px;
+      max-width: 90vw;
+    }
+
+    .boot-line.ok::after {
+      content: ' [OK]';
+      color: var(--cyan);
+    }
+
+    .boot-line.fail::after {
+      content: ' [FAIL]';
+      color: var(--red);
+    }
+
+    @keyframes bootAppear {
+      to {
+        opacity: 1;
+      }
+    }
+
+    #boot-progress {
+      width: 500px;
+      max-width: 90vw;
+      height: 4px;
+      background: #111;
+      border: 1px solid var(--green);
+      margin-top: 1.5rem;
+      overflow: hidden;
+    }
+
+    #boot-bar {
+      height: 100%;
+      background: var(--green);
+      box-shadow: var(--glow);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    /* MAIN OS */
+    #os {
+      display: none;
+      height: 100vh;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* TASKBAR */
+    #taskbar {
+      background: rgba(0, 255, 65, 0.08);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .taskbar-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .os-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+    }
+
+    .taskbar-btn {
+      padding: 2px 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .taskbar-btn:hover,
+    .taskbar-btn.active {
+      background: var(--green);
+      color: #000;
+      box-shadow: var(--glow);
+    }
+
+    .taskbar-right {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: rgba(0, 255, 65, 0.7);
+    }
+
+    #clock {
+      color: var(--cyan);
+    }
+
+    /* DESKTOP */
+    #desktop {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: 1fr 180px;
+      gap: 8px;
+      padding: 8px;
+      overflow: hidden;
+    }
+
+    /* PANELS */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.02);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+      opacity: 0.5;
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      color: var(--cyan);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: 0.15em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title::before {
+      content: '▶';
+      font-size: 0.5rem;
+    }
+
+    /* SIDEBAR */
+    #sidebar {
+      grid-row: 1 / 3;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #avatar-section {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .avatar-frame {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 12px;
+      position: relative;
+    }
+
+    .avatar-svg {
+      width: 90px;
+      height: 90px;
+    }
+
+    .avatar-ring {
+      position: absolute;
+      inset: -5px;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      animation: spin 8s linear infinite;
+      border-top-color: transparent;
+      border-right-color: transparent;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .dev-name {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .dev-title {
+      font-size: 0.75rem;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border: 1px solid var(--green);
+      font-size: 0.7rem;
+      color: var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      50% {
+        box-shadow: var(--glow);
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+    }
+
+    #nav-menu {
+      padding: 8px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-item {
+      padding: 9px 20px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 2px solid transparent;
+      color: rgba(0, 255, 65, 0.7);
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(0, 255, 65, 0.1);
+      border-left-color: var(--green);
+      color: var(--green);
+      text-shadow: 0 0 8px var(--green);
+      padding-left: 24px;
+    }
+
+    .nav-icon {
+      font-size: 0.9rem;
+      width: 18px;
+    }
+
+    #achievement-sidebar {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .achieve-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.6rem;
+      color: var(--yellow);
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      opacity: 0.2;
+      transition: all 0.3s;
+      cursor: help;
+      position: relative;
+    }
+
+    .badge.unlocked {
+      opacity: 1;
+      border-color: var(--yellow);
+      box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+      animation: badgePop 0.5s ease;
+    }
+
+    @keyframes badgePop {
+      0% {
+        transform: scale(0.5);
+      }
+
+      70% {
+        transform: scale(1.2);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* MAIN CONTENT */
+    #main-content {
+      overflow: hidden;
+      position: relative;
+    }
+
+    .content-section {
+      display: none;
+      height: 100%;
+      flex-direction: column;
+    }
+
+    .content-section.active {
+      display: flex;
+    }
+
+    /* TERMINAL */
+    #terminal-content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #terminal-output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      scrollbar-width: thin;
+      scrollbar-color: var(--green) transparent;
+    }
+
+    #terminal-output::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    #terminal-output::-webkit-scrollbar-thumb {
+      background: var(--green);
+    }
+
+    .t-line {
+      margin-bottom: 2px;
+    }
+
+    .t-prompt {
+      color: var(--cyan);
+    }
+
+    .t-cmd {
+      color: #fff;
+    }
+
+    .t-out {
+      color: var(--green);
+    }
+
+    .t-err {
+      color: var(--red);
+    }
+
+    .t-info {
+      color: var(--yellow);
+    }
+
+    .t-success {
+      color: var(--cyan);
+    }
+
+    #terminal-input-row {
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prompt-label {
+      color: var(--cyan);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    #terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      caret-color: var(--green);
+    }
+
+    /* ABOUT */
+    #about-content {
+      padding: 20px;
+      overflow-y: auto;
+      gap: 16px;
+    }
+
+    .section-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan);
+      margin-bottom: 16px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      background: var(--panel);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: rgba(0, 255, 65, 0.5);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      color: #fff;
+    }
+
+    .bio-text {
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: rgba(0, 255, 65, 0.8);
+      margin-bottom: 16px;
+    }
+
+    /* SKILL TREE */
+    #skills-content {
+      padding: 16px;
+      overflow-y: auto;
+      gap: 12px;
+    }
+
+    .skill-tree {
+      margin-bottom: 16px;
+    }
+
+    .tree-branch {
+      font-size: 0.82rem;
+      padding: 4px 0;
+    }
+
+    .tree-node {
+      display: inline-block;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin: 2px;
+    }
+
+    .tree-node:hover,
+    .tree-node.active-node {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+    }
+
+    .tree-connector {
+      color: rgba(0, 255, 65, 0.4);
+    }
+
+    .xp-bar-container {
+      margin: 4px 0 4px 20px;
+    }
+
+    .xp-bar {
+      height: 4px;
+      background: #111;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      display: inline-block;
+      width: 100px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: var(--green);
+      transition: width 1s ease;
+    }
+
+    /* PROJECTS */
+    #projects-content {
+      padding: 16px;
+      overflow-y: auto;
+      gap: 10px;
+    }
+
+    .project-card {
+      border: 1px solid var(--border);
+      padding: 14px;
+      background: var(--panel);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 50%, rgba(0, 255, 65, 0.05));
+    }
+
+    .project-card:hover {
+      border-color: var(--cyan);
+      transform: translateX(4px);
+      box-shadow: -4px 0 0 var(--cyan);
+    }
+
+    .project-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+
+    .project-desc {
+      font-size: 0.78rem;
+      color: rgba(0, 255, 65, 0.7);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 1px 8px;
+      border: 1px solid var(--border);
+      font-size: 0.68rem;
+      color: var(--yellow);
+    }
+
+    .biome-label {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      font-size: 0.65rem;
+      color: rgba(0, 255, 65, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* BOSS FIGHT */
+    #boss-content {
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    #boss-content.active {
+      display: flex;
+    }
+
+    .boss-arena {
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .boss-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--red);
+      text-shadow: var(--red-glow);
+      margin-bottom: 4px;
+    }
+
+    .boss-subtitle {
+      font-size: 0.8rem;
+      color: rgba(255, 0, 60, 0.6);
+      margin-bottom: 20px;
+    }
+
+    .boss-sprite {
+      font-size: 5rem;
+      display: block;
+      margin: 0 auto 12px;
+      animation: bossBob 2s ease-in-out infinite;
+    }
+
+    @keyframes bossBob {
+
+      0%,
+      100% {
+        transform: translateY(0) scaleX(1);
+      }
+
+      50% {
+        transform: translateY(-8px) scaleX(-1);
+      }
+    }
+
+    .boss-hp-label {
+      font-size: 0.75rem;
+      color: var(--red);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .boss-hp-bar {
+      height: 16px;
+      background: #1a0000;
+      border: 1px solid var(--red);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .boss-hp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff003c, #ff6600);
+      transition: width 0.8s ease;
+      box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+    }
+
+    .question-card {
+      background: rgba(255, 0, 60, 0.05);
+      border: 1px solid rgba(255, 0, 60, 0.3);
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: left;
+      width: 100%;
+    }
+
+    .q-label {
+      font-size: 0.7rem;
+      color: var(--red);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .q-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .q-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 0, 60, 0.3);
+      background: transparent;
+      color: rgba(255, 255, 255, 0.7);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .q-btn:hover {
+      border-color: var(--red);
+      color: #fff;
+      background: rgba(255, 0, 60, 0.1);
+    }
+
+    .q-btn.selected {
+      border-color: var(--yellow);
+      color: var(--yellow);
+      background: rgba(255, 255, 0, 0.05);
+    }
+
+    .q-text {
+      font-size: 0.85rem;
+      color: rgba(0, 255, 65, 0.9);
+      margin-bottom: 8px;
+    }
+
+    #boss-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #ff003c, #ff6600);
+      border: none;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: var(--red-glow);
+    }
+
+    #boss-submit:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(255, 0, 60, 1);
+    }
+
+    #boss-victory {
+      display: none;
+      text-align: center;
+    }
+
+    .victory-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      color: var(--yellow);
+      text-shadow: 0 0 15px var(--yellow);
+      animation: victoryPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes victoryPulse {
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    /* LOG PANEL */
+    #log-panel {
+      overflow: hidden;
+    }
+
+    #log-body {
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      height: calc(100% - 35px);
+      overflow-y: auto;
+      line-height: 1.8;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      color: rgba(0, 255, 65, 0.6);
+    }
+
+    .log-time {
+      color: rgba(0, 255, 65, 0.3);
+      white-space: nowrap;
+    }
+
+    .log-msg {}
+
+    .log-warn {
+      color: var(--yellow);
+    }
+
+    .log-crit {
+      color: var(--red);
+    }
+
+    /* ACHIEVEMENT POPUP */
+    #achieve-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 1px solid var(--yellow);
+      box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+      padding: 14px 18px;
+      z-index: 500;
+      display: none;
+      max-width: 280px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .ap-label {
+      font-size: 0.65rem;
+      color: var(--yellow);
+      letter-spacing: 0.15em;
+      margin-bottom: 4px;
+    }
+
+    .ap-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+
+    .ap-icon {
+      font-size: 1.5rem;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* EASTER EGG */
+    #matrix-rain {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 900;
+      background: #000;
+    }
+
+    #matrix-rain canvas {
+      display: block;
+    }
+
+    #matrix-close {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 901;
+      background: var(--red);
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      font-family: 'Share Tech Mono', monospace;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* KONAMI */
+    #konami-msg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 950;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .konami-title {
+      font-family: 'VT323', monospace;
+      font-size: 4rem;
+      color: var(--yellow);
+      margin-bottom: 20px;
+      text-shadow: 0 0 30px var(--yellow);
+    }
+
+    .konami-close {
+      margin-top: 20px;
+      padding: 10px 30px;
+      border: 2px solid var(--yellow);
+      background: transparent;
+      color: var(--yellow);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--green);
+    }
+
+    /* GLITCH */
+    @keyframes glitch {
+      0% {
+        text-shadow: 2px 0 var(--red), -2px 0 var(--cyan);
+        transform: translate(0);
+      }
+
+      20% {
+        text-shadow: -2px 0 var(--red), 2px 0 var(--cyan);
+        transform: translate(-2px, 1px);
+      }
+
+      40% {
+        text-shadow: 2px 0 var(--red), -2px 0 var(--cyan);
+        transform: translate(2px, -1px);
+      }
+
+      60% {
+        text-shadow: -2px 0 var(--red), 2px 0 var(--cyan);
+        transform: translate(0);
+      }
+
+      80%,
+      100% {
+        text-shadow: none;
+        transform: translate(0);
+      }
+    }
+
+    .glitch {
+      animation: glitch 4s infinite;
+    }
+
+    /* TYPEWRITER */
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    /* MUTE BUTTON */
+    #mute-btn {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 800;
+      background: rgba(0, 0, 0, 0.85);
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+
+    #mute-btn:hover {
+      border-color: var(--green);
+      box-shadow: var(--glow);
+    }
+
+    #mute-btn.muted {
+      color: rgba(0, 255, 65, 0.35);
+      border-color: rgba(0, 255, 65, 0.2);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      #desktop {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr 120px;
+      }
+
+      #sidebar {
+        grid-row: auto;
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .q-options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- BOOT SCREEN -->
+  <div id="boot-screen">
+    <div class="boot-logo">MOHIT.EXE</div>
+    <div id="boot-lines"></div>
+    <div id="boot-progress">
+      <div id="boot-bar"></div>
+    </div>
+  </div>
+
+  <!-- MAIN OS -->
+  <div id="os">
+    <!-- TASKBAR -->
+    <div id="taskbar">
+      <div class="taskbar-left">
+        <span class="os-logo">⬡ PORTFOLIO_OS v2.5</span>
+        <button class="taskbar-btn active" onclick="switchSection('terminal')">TERMINAL</button>
+        <button class="taskbar-btn" onclick="switchSection('about')">ABOUT.EXE</button>
+        <button class="taskbar-btn" onclick="switchSection('skills')">SKILL_TREE</button>
+        <button class="taskbar-btn" onclick="switchSection('projects')">PROJECTS</button>
+        <button class="taskbar-btn" onclick="switchSection('boss')">⚔ CONTACT</button>
+      </div>
+      <div class="taskbar-right">
+        <span>MEM: 420MB</span>
+        <span>CPU: <span id="cpu-val">13</span>%</span>
+        <span id="clock"></span>
+      </div>
+    </div>
+
+    <!-- DESKTOP -->
+    <div id="desktop">
+
+      <!-- SIDEBAR -->
+      <div class="panel" id="sidebar">
+        <div class="panel-title">SYSTEM_USER.DAT</div>
+        <div id="avatar-section">
+          <div class="avatar-frame">
+            <svg class="avatar-svg" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- pixel avatar -->
+              <rect x="30" y="10" width="30" height="30" fill="#00ff41" rx="2" />
+              <rect x="35" y="18" width="6" height="6" fill="#000" />
+              <rect x="49" y="18" width="6" height="6" fill="#000" />
+              <rect x="36" y="30" width="18" height="3" fill="#000" rx="1" />
+              <rect x="25" y="40" width="40" height="35" fill="#00cc33" rx="3" />
+              <rect x="15" y="42" width="12" height="20" fill="#00ff41" rx="2" />
+              <rect x="63" y="42" width="12" height="20" fill="#00ff41" rx="2" />
+              <rect x="30" y="75" width="12" height="12" fill="#00ff41" rx="2" />
+              <rect x="48" y="75" width="12" height="12" fill="#00ff41" rx="2" />
+              <rect x="35" y="47" width="6" height="6" fill="#000" />
+              <rect x="49" y="47" width="6" height="6" fill="#000" />
+            </svg>
+            <div class="avatar-ring"></div>
+          </div>
+          <div class="dev-name glitch">MOHIT.DEV</div>
+          <div class="dev-title">Full Stack Developer · AI Enthusiast</div>
+          <div class="status-badge">● OPEN TO WORK</div>
+        </div>
+
+        <div id="nav-menu">
+          <div class="nav-item active" onclick="switchSection('terminal')"><span class="nav-icon">$</span> TERMINAL
+          </div>
+          <div class="nav-item" onclick="switchSection('about')"><span class="nav-icon">👤</span> ABOUT</div>
+          <div class="nav-item" onclick="switchSection('skills')"><span class="nav-icon">🌳</span> SKILL TREE</div>
+          <div class="nav-item" onclick="switchSection('projects')"><span class="nav-icon">📁</span> PROJECTS</div>
+          <div class="nav-item" onclick="switchSection('boss')"><span class="nav-icon">👹</span> CONTACT BOSS</div>
+        </div>
+
+        <div id="achievement-sidebar">
+          <div class="achieve-title">🏆 ACHIEVEMENTS</div>
+          <div class="badge-grid">
+            <div class="badge" id="badge-curious" title="Curious Human">👁</div>
+            <div class="badge" id="badge-hacker" title="Elite Hacker">💻</div>
+            <div class="badge" id="badge-explorer" title="Explorer">🗺</div>
+            <div class="badge" id="badge-gamer" title="True Gamer">🎮</div>
+            <div class="badge" id="badge-hunter" title="Secret Hunter">🥚</div>
+            <div class="badge" id="badge-boss" title="Boss Slayer">⚔</div>
+            <div class="badge" id="badge-matrix" title="Matrix Initiate">🟩</div>
+            <div class="badge" id="badge-konami" title="Konami Master">⬆</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="panel" id="main-content">
+        <div class="panel-title" id="main-title">TERMINAL_v2.5.0</div>
+
+        <!-- TERMINAL -->
+        <div class="content-section active" id="terminal-section">
+          <div id="terminal-content">
+            <div id="terminal-output"></div>
+            <div id="terminal-input-row">
+              <span class="prompt-label">mohit@portfolio:~$</span>
+              <input type="text" id="terminal-input" placeholder="type 'help' to begin..." autocomplete="off"
+                spellcheck="false">
+            </div>
+          </div>
+        </div>
+
+        <!-- ABOUT -->
+        <div class="content-section" id="about-section">
+          <div id="about-content">
+            <div class="section-header">// ABOUT_ME.JSON</div>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Level</div>
+                <div class="stat-value">17 🔥</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">XP</div>
+                <div class="stat-value">88,420</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Class</div>
+                <div class="stat-value">Dev Mage</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Guild</div>
+                <div class="stat-value">Open Source</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Projects Shipped</div>
+                <div class="stat-value">24+</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Bugs Squashed</div>
+                <div class="stat-value">9,999+</div>
+              </div>
+            </div>
+            <div class="bio-text">
+              Greetings, traveler. I'm Mohit — a full-stack developer who builds digital realms by day and games by
+              night. I started coding at 16 and never stopped. My weapon of choice? JavaScript and Python. My weakness?
+              Perfectly centered divs and dark patterns in games I shouldn't be playing.
+            </div>
+            <div class="bio-text">
+              I specialize in building scalable web apps, AI-powered tools, and occasionally things that should probably
+              not exist. If you've made it this far in my portfolio, we're already friends.
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Location</div>
+                <div class="stat-value">🇮🇳 India</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Timezone</div>
+                <div class="stat-value">IST (UTC+5:30)</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Response Time</div>
+                <div class="stat-value">&lt; 24hrs</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Coffee/Day</div>
+                <div class="stat-value">∞ cups</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SKILLS -->
+        <div class="content-section" id="skills-section">
+          <div id="skills-content">
+            <div class="section-header">// SKILL_TREE.RPG</div>
+
+            <div class="skill-tree">
+              <div
+                style="font-family:'Orbitron',sans-serif;font-size:0.7rem;color:var(--cyan);margin-bottom:8px;letter-spacing:0.1em;">
+                ⚡ FRONTEND</div>
+              <div class="tree-branch"><span class="tree-connector">├─</span> <span
+                  class="tree-node active-node">HTML5</span> <span class="xp-bar-container"><span class="xp-bar"><span
+                      class="xp-fill" style="width:95%"></span></span>95%</span></div>
+              <div class="tree-branch"><span class="tree-connector">│ └─</span> <span class="tree-node">Canvas
+                  API</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:80%"></span></span>80%</span></div>
+              <div class="tree-branch"><span class="tree-connector">│ └─</span> <span class="tree-node">WebGL /
+                  Three.js</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:65%"></span></span>65%</span></div>
+              <div class="tree-branch"><span class="tree-connector">├─</span> <span class="tree-node">CSS3 +
+                  Tailwind</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:90%"></span></span>90%</span></div>
+              <div class="tree-branch"><span class="tree-connector">│ └─</span> <span
+                  class="tree-node">Animations</span> <span class="xp-bar-container"><span class="xp-bar"><span
+                      class="xp-fill" style="width:85%"></span></span>85%</span></div>
+              <div class="tree-branch"><span class="tree-connector">└─</span> <span class="tree-node">React /
+                  Next.js</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:88%"></span></span>88%</span></div>
+            </div>
+
+            <div class="skill-tree">
+              <div
+                style="font-family:'Orbitron',sans-serif;font-size:0.7rem;color:var(--orange);margin-bottom:8px;letter-spacing:0.1em;">
+                🔥 BACKEND</div>
+              <div class="tree-branch"><span class="tree-connector">├─</span> <span class="tree-node">Node.js</span>
+                <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:85%"></span></span>85%</span></div>
+              <div class="tree-branch"><span class="tree-connector">├─</span> <span class="tree-node">Python +
+                  FastAPI</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:82%"></span></span>82%</span></div>
+              <div class="tree-branch"><span class="tree-connector">│ └─</span> <span class="tree-node">AI / ML</span>
+                <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:70%"></span></span>70%</span></div>
+              <div class="tree-branch"><span class="tree-connector">└─</span> <span class="tree-node">PostgreSQL +
+                  MongoDB</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:78%"></span></span>78%</span></div>
+            </div>
+
+            <div class="skill-tree">
+              <div
+                style="font-family:'Orbitron',sans-serif;font-size:0.7rem;color:var(--yellow);margin-bottom:8px;letter-spacing:0.1em;">
+                ⚙ DEVOPS & TOOLS</div>
+              <div class="tree-branch"><span class="tree-connector">├─</span> <span class="tree-node">Docker +
+                  AWS</span> <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:75%"></span></span>75%</span></div>
+              <div class="tree-branch"><span class="tree-connector">└─</span> <span class="tree-node">Git + CI/CD</span>
+                <span class="xp-bar-container"><span class="xp-bar"><span class="xp-fill"
+                      style="width:90%"></span></span>90%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROJECTS -->
+        <div class="content-section" id="projects-section">
+          <div id="projects-content">
+            <div class="section-header">// PROJECTS.DIR</div>
+
+            <div class="project-card" onclick="unlockAchievement('explorer')">
+              <span class="biome-label">🏜 DESERT BIOME</span>
+              <div class="project-name">⚡ NEURALCHAT</div>
+              <div class="project-desc">An AI-powered real-time chat application with multi-model support, custom
+                memory, and plugin system. 2k+ active users.</div>
+              <div class="project-tags">
+                <span class="tag">React</span><span class="tag">WebSocket</span><span class="tag">OpenAI</span><span
+                  class="tag">Redis</span>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="biome-label">🏜 DESERT BIOME</span>
+              <div class="project-name">🛒 PIXELMART</div>
+              <div class="project-desc">Full-stack e-commerce platform with real-time inventory, AI recommendations, and
+                blazing-fast Stripe checkout.</div>
+              <div class="project-tags">
+                <span class="tag">Next.js</span><span class="tag">Stripe</span><span class="tag">PostgreSQL</span><span
+                  class="tag">Vercel</span>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="biome-label">🔥 NETHER BIOME</span>
+              <div class="project-name">🔐 CRYPTOVAULT</div>
+              <div class="project-desc">Self-hosted password manager with zero-knowledge encryption, browser extension,
+                and TOTP 2FA. Military-grade security.</div>
+              <div class="project-tags">
+                <span class="tag">Rust</span><span class="tag">AES-256</span><span class="tag">WASM</span><span
+                  class="tag">SQLite</span>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <span class="biome-label">🌌 END BIOME</span>
+              <div class="project-name">🤖 AUTOSCRIBE</div>
+              <div class="project-desc">AI document intelligence tool that extracts, summarizes, and answers questions
+                from any file type. Used by 500+ businesses.</div>
+              <div class="project-tags">
+                <span class="tag">Python</span><span class="tag">LangChain</span><span class="tag">FastAPI</span><span
+                  class="tag">Pinecone</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOSS FIGHT -->
+        <div class="content-section" id="boss-section">
+          <div id="boss-content">
+            <div class="boss-arena">
+              <div class="boss-title">👹 BOSS FIGHT</div>
+              <div class="boss-subtitle">DEFEAT THE CONTACT BOSS TO SEND A MESSAGE</div>
+              <span class="boss-sprite" id="boss-sprite">👾</span>
+              <div class="boss-hp-label">
+                <span>BOSS HP</span>
+                <span id="hp-text">100 / 100</span>
+              </div>
+              <div class="boss-hp-bar">
+                <div class="boss-hp-fill" id="hp-fill" style="width:100%"></div>
+              </div>
+
+              <div id="boss-questions">
+                <div class="question-card">
+                  <div class="q-label">QUESTION 1 — What brings you here?</div>
+                  <div class="q-options">
+                    <button class="q-btn" onclick="selectQ(1,this,'Freelance Project')">Freelance Project</button>
+                    <button class="q-btn" onclick="selectQ(1,this,'Full-time Role')">Full-time Role</button>
+                    <button class="q-btn" onclick="selectQ(1,this,'Collab / Open Source')">Collab / Open Source</button>
+                    <button class="q-btn" onclick="selectQ(1,this,'Just Exploring')">Just Exploring</button>
+                  </div>
+                </div>
+
+                <div class="question-card">
+                  <div class="q-label">QUESTION 2 — What project caught your eye?</div>
+                  <div class="q-options">
+                    <button class="q-btn" onclick="selectQ(2,this,'NeuralChat')">NeuralChat</button>
+                    <button class="q-btn" onclick="selectQ(2,this,'PixelMart')">PixelMart</button>
+                    <button class="q-btn" onclick="selectQ(2,this,'CryptoVault')">CryptoVault</button>
+                    <button class="q-btn" onclick="selectQ(2,this,'AutoScribe')">AutoScribe</button>
+                  </div>
+                </div>
+
+                <div class="question-card">
+                  <div class="q-label">QUESTION 3 — Your name & email (to connect)</div>
+                  <div style="display:grid;gap:8px;margin-top:8px">
+                    <input id="contact-name" type="text" placeholder="Your name..."
+                      style="background:rgba(255,0,60,0.05);border:1px solid rgba(255,0,60,0.3);color:#fff;padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:0.82rem;outline:none;width:100%"
+                      oninput="updateQ3()">
+                    <input id="contact-email" type="email" placeholder="your@email.com..."
+                      style="background:rgba(255,0,60,0.05);border:1px solid rgba(255,0,60,0.3);color:#fff;padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:0.82rem;outline:none;width:100%"
+                      oninput="updateQ3()">
+                  </div>
+                </div>
+
+                <button id="boss-submit" onclick="defeatBoss()">⚔ STRIKE THE BOSS (SEND MESSAGE)</button>
+              </div>
+
+              <div id="boss-victory">
+                <div style="font-size:4rem;margin-bottom:12px">💥</div>
+                <div class="victory-text">BOSS DEFEATED!</div>
+                <div style="margin-top:12px;color:rgba(0,255,65,0.8);font-size:0.85rem">Message sent successfully. Mohit
+                  will respawn soon.<br>Achievement unlocked: ⚔ BOSS SLAYER</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end main-content -->
+
+      <!-- LOG PANEL -->
+      <div class="panel" id="log-panel">
+        <div class="panel-title">SYSTEM_LOG.TXT</div>
+        <div id="log-body"></div>
+      </div>
+
+    </div><!-- end desktop -->
+  </div><!-- end os -->
+
+  <!-- MUTE BUTTON -->
+  <button id="mute-btn" onclick="toggleMute()">🔊 SFX: ON</button>
+
+  <!-- ACHIEVEMENT POPUP -->
+  <div id="achieve-popup">
+    <span class="ap-icon" id="ap-icon">🏆</span>
+    <div class="ap-label">ACHIEVEMENT UNLOCKED</div>
+    <div class="ap-name" id="ap-name">Achievement</div>
+  </div>
+
+  <!-- MATRIX RAIN -->
+  <div id="matrix-rain">
+    <canvas id="matrix-canvas"></canvas>
+    <button id="matrix-close" onclick="closeMatrix()">[ CLOSE MATRIX ]</button>
+  </div>
+
+  <!-- KONAMI CODE -->
+  <div id="konami-msg">
+    <div class="konami-title">⬆⬆⬇⬇⬅➡⬅➡ B A</div>
+    <div style="font-family:'VT323',monospace;font-size:1.8rem;color:var(--green)">YOU FOUND THE KONAMI CODE!</div>
+    <div style="font-size:0.85rem;color:rgba(0,255,65,0.6);margin-top:12px">Achievement unlocked: ⬆ KONAMI
+      MASTER<br>Secret: Mohit's favorite game is Hollow Knight 🦋</div>
+    <button class="konami-close" onclick="closeKonami()">CLOSE SECRET</button>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // 🔊 SOUND ENGINE — 100% Web Audio API, no files needed
+    // ═══════════════════════════════════════════════════════
+    let audioCtx = null;
+    let isMuted = false;
+
+    function getCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function playTone({ type = 'square', freq = 440, freq2, duration = 0.12, volume = 0.18,
+      attack = 0.005, decay = 0.05, sustain = 0.6, release = 0.1,
+      delay = 0, detune = 0 } = {}) {
+      if (isMuted) return;
+      const ctx = getCtx();
+      setTimeout(() => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        if (freq2) osc.frequency.linearRampToValueAtTime(freq2, ctx.currentTime + duration);
+        osc.detune.setValueAtTime(detune, ctx.currentTime);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + attack);
+        gain.gain.linearRampToValueAtTime(volume * sustain, ctx.currentTime + attack + decay);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration + release);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + duration + release + 0.05);
+      }, delay);
+    }
+
+    function playNoise({ duration = 0.1, volume = 0.08, freq = 800, q = 5, freq2, delay = 0 } = {}) {
+      if (isMuted) return;
+      const ctx = getCtx();
+      setTimeout(() => {
+        const bufSize = ctx.sampleRate * duration;
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(freq, ctx.currentTime);
+        if (freq2) filter.frequency.linearRampToValueAtTime(freq2, ctx.currentTime + duration);
+        filter.Q.value = q;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+        src.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        src.start(ctx.currentTime);
+        src.stop(ctx.currentTime + duration + 0.05);
+      }, delay);
+    }
+
+    // ── NAMED SOUNDS ──────────────────────────────────────
+    const SFX = {
+
+      // Boot beep sequence — rising tones
+      bootBeep(i) {
+        const freqs = [220, 277, 330, 415, 523, 622, 784, 880, 1047, 1318];
+        playTone({
+          type: 'square', freq: freqs[i] || 440, duration: 0.06, volume: 0.12,
+          attack: 0.002, decay: 0.02, sustain: 0.5, release: 0.04
+        });
+      },
+
+      // Boot complete — jingle
+      bootComplete() {
+        [[523, 0], [659, 80], [784, 160], [1047, 240]].forEach(([f, d]) =>
+          playTone({
+            type: 'triangle', freq: f, duration: 0.18, volume: 0.22, delay: d,
+            attack: 0.01, decay: 0.06, release: 0.12
+          })
+        );
+      },
+
+      // Keyboard click — crisp typewriter
+      keyClick() {
+        playNoise({ duration: 0.04, volume: 0.15, freq: 3500, q: 2 });
+        playTone({
+          type: 'square', freq: 180, freq2: 80, duration: 0.03,
+          volume: 0.06, attack: 0.001, release: 0.02
+        });
+      },
+
+      // Terminal enter — deeper thunk
+      termEnter() {
+        playNoise({ duration: 0.07, volume: 0.2, freq: 1200, q: 3 });
+        playTone({
+          type: 'sawtooth', freq: 120, freq2: 60, duration: 0.08,
+          volume: 0.12, attack: 0.002, release: 0.06
+        });
+      },
+
+      // Terminal error — classic BSOD buzz
+      termError() {
+        playTone({
+          type: 'sawtooth', freq: 80, freq2: 60, duration: 0.25,
+          volume: 0.2, attack: 0.005, sustain: 0.8, release: 0.15
+        });
+        playNoise({ duration: 0.15, volume: 0.1, freq: 600, q: 1, delay: 60 });
+      },
+
+      // Terminal success — soft chime
+      termSuccess() {
+        playTone({
+          type: 'triangle', freq: 784, duration: 0.14, volume: 0.2,
+          attack: 0.01, release: 0.1
+        });
+        playTone({
+          type: 'triangle', freq: 1047, duration: 0.12, volume: 0.15,
+          delay: 110, attack: 0.01, release: 0.1
+        });
+      },
+
+      // Nav click — UI blip
+      navClick() {
+        playTone({
+          type: 'sine', freq: 660, freq2: 880, duration: 0.07,
+          volume: 0.14, attack: 0.003, release: 0.05
+        });
+        playNoise({ duration: 0.03, volume: 0.07, freq: 5000, q: 4 });
+      },
+
+      // Hover — subtle tick
+      hover() {
+        playTone({
+          type: 'sine', freq: 1200, duration: 0.03,
+          volume: 0.06, attack: 0.001, release: 0.02
+        });
+      },
+
+      // Achievement unlock — 8-bit fanfare
+      achievement() {
+        const seq = [[523, 0], [659, 90], [784, 180], [1047, 270], [784, 360], [1047, 430], [1318, 510]];
+        seq.forEach(([f, d]) =>
+          playTone({
+            type: 'square', freq: f, duration: 0.13, volume: 0.2, delay: d,
+            attack: 0.005, decay: 0.03, sustain: 0.7, release: 0.08
+          })
+        );
+      },
+
+      // Boss hit — damage crunch
+      bossHit() {
+        playNoise({ duration: 0.18, volume: 0.28, freq: 200, q: 1.5, freq2: 60 });
+        playTone({
+          type: 'sawtooth', freq: 110, freq2: 55, duration: 0.2,
+          volume: 0.2, attack: 0.003, sustain: 0.6, release: 0.15
+        });
+      },
+
+      // Boss growl — low rumble on spawn
+      bossSpawn() {
+        for (let i = 0; i < 4; i++) {
+          playNoise({ duration: 0.25, volume: 0.18, freq: 80 + i * 20, q: 2, delay: i * 120 });
+        }
+        playTone({
+          type: 'sawtooth', freq: 55, freq2: 80, duration: 0.8,
+          volume: 0.15, attack: 0.05, sustain: 0.5, release: 0.4
+        });
+      },
+
+      // Boss defeat — explosion + victory
+      bossDefeat() {
+        // BOOM
+        playNoise({ duration: 0.6, volume: 0.35, freq: 120, q: 0.8, freq2: 30 });
+        // Victory arpeggio
+        const v = [[392, 300], [523, 420], [659, 540], [784, 660], [1047, 780], [1318, 900]];
+        v.forEach(([f, d]) =>
+          playTone({
+            type: 'square', freq: f, duration: 0.15, volume: 0.22, delay: d,
+            attack: 0.005, decay: 0.04, sustain: 0.7, release: 0.1
+          })
+        );
+      },
+
+      // Matrix glitch — digital chaos
+      matrixOpen() {
+        for (let i = 0; i < 6; i++) {
+          playNoise({
+            duration: 0.08, volume: 0.12, freq: 2000 + Math.random() * 3000,
+            q: 3, delay: i * 60
+          });
+          playTone({
+            type: 'sawtooth', freq: 100 + Math.random() * 800, duration: 0.06,
+            volume: 0.08, delay: i * 60 + 20
+          });
+        }
+      },
+
+      // Konami — classic 8-bit tada
+      konami() {
+        const seq = [[330, 0], [330, 100], [330, 200], [262, 300], [330, 400], [392, 500], [196, 600]];
+        seq.forEach(([f, d]) =>
+          playTone({
+            type: 'square', freq: f, duration: 0.14, volume: 0.22, delay: d,
+            attack: 0.005, sustain: 0.8, release: 0.08
+          })
+        );
+      },
+
+      // Project card hover
+      cardHover() {
+        playTone({
+          type: 'sine', freq: 523, freq2: 659, duration: 0.06,
+          volume: 0.09, attack: 0.002, release: 0.04
+        });
+      },
+
+      // Skill node click
+      nodeClick() {
+        playTone({
+          type: 'triangle', freq: 880, duration: 0.1,
+          volume: 0.15, attack: 0.003, release: 0.07
+        });
+        playTone({
+          type: 'sine', freq: 1175, duration: 0.08,
+          volume: 0.1, delay: 60, attack: 0.002, release: 0.05
+        });
+      },
+
+      // Mute toggle
+      muteOn() { playTone({ type: 'sine', freq: 880, freq2: 440, duration: 0.12, volume: 0.18 }); },
+      muteOff() { playTone({ type: 'sine', freq: 440, freq2: 880, duration: 0.12, volume: 0.18 }); },
+
+      // AFK sleepy - soft lullaby note
+      afk() {
+        playTone({
+          type: 'sine', freq: 330, duration: 0.5, volume: 0.1,
+          attack: 0.1, sustain: 0.4, release: 0.3
+        });
+      },
+
+      // Ambient hum (boot start)
+      bootHum() {
+        playTone({
+          type: 'sine', freq: 60, duration: 2.5, volume: 0.08,
+          attack: 0.3, sustain: 0.7, release: 0.8
+        });
+      }
+    };
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      const btn = document.getElementById('mute-btn');
+      btn.textContent = isMuted ? '🔇 SFX: OFF' : '🔊 SFX: ON';
+      btn.classList.toggle('muted', isMuted);
+      if (!isMuted) SFX.muteOff();
+      else {
+        // play before muting for the "off" click feel
+        const tmp = isMuted;
+        isMuted = false;
+        SFX.muteOn();
+        isMuted = tmp;
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // BOOT SEQUENCE
+    // ─────────────────────────────────────────────
+    const bootLines = [
+      { text: 'Initializing PORTFOLIO_OS v2.5...', cls: '', delay: 200 },
+      { text: 'Loading kernel modules...', cls: 'ok', delay: 400 },
+      { text: 'Mounting /dev/mohit...', cls: 'ok', delay: 600 },
+      { text: 'Checking for viruses...', cls: 'fail', delay: 800 },
+      { text: 'Importing 9999 npm packages...', cls: 'ok', delay: 1000 },
+      { text: 'Detecting gamer profile...', cls: 'ok', delay: 1200 },
+      { text: 'Loading easter eggs...', cls: 'ok', delay: 1400 },
+      { text: 'Starting achievement system...', cls: 'ok', delay: 1600 },
+      { text: 'Spawning boss...', cls: 'ok', delay: 1800 },
+      { text: 'System ready. Welcome, traveler.', cls: '', delay: 2000 },
+    ];
+
+    const bootLinesEl = document.getElementById('boot-lines');
+    const bootBar = document.getElementById('boot-bar');
+
+    // Start ambient hum on first interaction (autoplay policy)
+    document.addEventListener('click', () => { if (audioCtx) return; getCtx(); }, { once: true });
+    document.addEventListener('keydown', () => { if (!audioCtx) getCtx(); }, { once: true });
+
+    bootLines.forEach((line, i) => {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = `boot-line ${line.cls}`;
+        el.textContent = '> ' + line.text;
+        bootLinesEl.appendChild(el);
+        bootBar.style.width = ((i + 1) / bootLines.length * 100) + '%';
+        SFX.bootBeep(i);
+        if (i === bootLines.length - 1) {
+          SFX.bootComplete();
+          setTimeout(() => {
+            document.getElementById('boot-screen').style.display = 'none';
+            document.getElementById('os').style.display = 'flex';
+            initOS();
+          }, 600);
+        }
+      }, line.delay);
+    });
+
+    // ─────────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────────
+    function initOS() {
+      updateClock();
+      setInterval(updateClock, 1000);
+      setInterval(updateCPU, 2000);
+      terminalWelcome();
+      setTimeout(() => { unlockAchievement('curious'); }, 30000);
+      addLog('SYSTEM', 'Portfolio OS initialized successfully.', '');
+      addLog('INFO', 'Guest user detected. Welcome!', 'warn');
+      addLog('WARN', 'Achievement system online.', 'warn');
+      addLog('DEBUG', 'Type "help" in terminal for commands.', '');
+      document.getElementById('terminal-input').focus();
+
+      // ── HOVER SOUNDS ────────────────────────────
+      // Nav items
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.addEventListener('mouseenter', () => SFX.hover());
+      });
+      // Taskbar buttons
+      document.querySelectorAll('.taskbar-btn').forEach(el => {
+        el.addEventListener('mouseenter', () => SFX.hover());
+      });
+      // Project cards
+      document.querySelectorAll('.project-card').forEach(el => {
+        el.addEventListener('mouseenter', () => SFX.cardHover());
+      });
+      // Skill nodes
+      document.querySelectorAll('.tree-node').forEach(el => {
+        el.addEventListener('click', () => SFX.nodeClick());
+        el.addEventListener('mouseenter', () => SFX.hover());
+      });
+      // Q buttons in boss fight (delegated since they exist in DOM)
+      document.getElementById('boss-content').addEventListener('mouseenter', (e) => {
+        if (e.target.classList.contains('q-btn')) SFX.hover();
+      }, true);
+      // AFK sound
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+    }
+    function updateCPU() {
+      document.getElementById('cpu-val').textContent = Math.floor(Math.random() * 20 + 10);
+    }
+
+    // ─────────────────────────────────────────────
+    // SECTIONS
+    // ─────────────────────────────────────────────
+    const sectionTitles = {
+      terminal: 'TERMINAL_v2.5.0',
+      about: 'ABOUT_ME.JSON',
+      skills: 'SKILL_TREE.RPG',
+      projects: 'PROJECTS.DIR',
+      boss: 'CONTACT_BOSS.EXE ⚠'
+    };
+
+    function switchSection(name) {
+      SFX.navClick();
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.taskbar-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      document.getElementById(name + '-section').classList.add('active');
+      document.getElementById('main-title').textContent = sectionTitles[name];
+
+      const btns = document.querySelectorAll('.taskbar-btn');
+      const names = ['terminal', 'about', 'skills', 'projects', 'boss'];
+      btns[names.indexOf(name)]?.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach((n, i) => {
+        if (i === names.indexOf(name)) n.classList.add('active');
+      });
+
+      addLog('NAV', `Switched to ${sectionTitles[name]}`, '');
+
+      if (name === 'boss') {
+        setTimeout(() => { document.getElementById('boss-content').style.display = 'flex'; }, 50);
+        addLog('WARN', 'BOSS SPAWNED. Prepare yourself.', 'crit');
+        SFX.bossSpawn();
+      }
+      if (name === 'terminal') {
+        setTimeout(() => document.getElementById('terminal-input').focus(), 100);
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // TERMINAL
+    // ─────────────────────────────────────────────
+    const output = document.getElementById('terminal-output');
+    const input = document.getElementById('terminal-input');
+
+    let cmdHistory = [];
+    let historyIdx = -1;
+    let terminalGameActive = false;
+    let snakeGame = null;
+
+    function terminalWelcome() {
+      printLines([
+        { cls: 't-success', text: '╔═══════════════════════════════════════════╗' },
+        { cls: 't-success', text: '║        PORTFOLIO_OS v2.5 — MOHIT.EXE       ║' },
+        { cls: 't-success', text: '╚═══════════════════════════════════════════╝' },
+        { cls: 't-out', text: '' },
+        { cls: 't-out', text: 'Welcome, traveler. This OS contains secrets.' },
+        { cls: 't-out', text: 'Start with: help' },
+        { cls: 't-out', text: '' },
+      ]);
+    }
+
+    function printLines(lines) {
+      lines.forEach(l => {
+        const div = document.createElement('div');
+        div.className = 't-line ' + (l.cls || 't-out');
+        div.textContent = l.text;
+        output.appendChild(div);
+      });
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function printLine(text, cls = 't-out') {
+      const div = document.createElement('div');
+      div.className = 't-line ' + cls;
+      div.textContent = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function printPrompt(cmd) {
+      const div = document.createElement('div');
+      div.className = 't-line';
+      div.innerHTML = `<span class="t-prompt">mohit@portfolio:~$</span> <span class="t-cmd">${cmd}</span>`;
+      output.appendChild(div);
+    }
+
+    const commands = {
+      help: () => {
+        printLines([
+          { cls: 't-info', text: '─── AVAILABLE COMMANDS ───────────────────────' },
+          { cls: 't-out', text: '  about          → Learn about Mohit' },
+          { cls: 't-out', text: '  skills         → View skill tree' },
+          { cls: 't-out', text: '  projects       → Browse projects' },
+          { cls: 't-out', text: '  contact        → Fight the boss & send message' },
+          { cls: 't-out', text: '  play snake     → Play snake game in terminal' },
+          { cls: 't-out', text: '  matrix         → ???' },
+          { cls: 't-out', text: '  sudo hire-me   → Unlock secret resume' },
+          { cls: 't-out', text: '  whoami         → Identity check' },
+          { cls: 't-out', text: '  clear          → Clear terminal' },
+          { cls: 't-out', text: '  hack           → Heh...' },
+          { cls: 't-info', text: '─────────────────────────────────────────────' },
+        ]);
+        unlockAchievement('hacker');
+      },
+      about: () => { SFX.termSuccess(); switchSection('about'); printLine('Opening about section...', 't-success'); },
+      skills: () => { SFX.termSuccess(); switchSection('skills'); printLine('Loading skill tree...', 't-success'); },
+      projects: () => { SFX.termSuccess(); switchSection('projects'); printLine('Mounting /projects directory...', 't-success'); },
+      contact: () => { switchSection('boss'); printLine('⚠ SUMMONING THE BOSS...', 't-err'); },
+      whoami: () => {
+        printLines([
+          { cls: 't-out', text: '> SCANNING USER...' },
+          { cls: 't-info', text: '> Detected: Curious human with good taste.' },
+          { cls: 't-out', text: '> You found a terminal-based portfolio.' },
+          { cls: 't-out', text: '> That alone makes you 73% cooler than average.' },
+        ]);
+      },
+      hack: () => {
+        printLines([
+          { cls: 't-err', text: 'ACCESS GRANTED' },
+          { cls: 't-err', text: 'Just kidding. You wish.' },
+          { cls: 't-out', text: 'But seriously, hi. I hope you like the portfolio.' },
+        ]);
+      },
+      matrix: () => {
+        printLine('Entering the Matrix...', 't-success');
+        SFX.matrixOpen();
+        setTimeout(openMatrix, 500);
+      },
+      'sudo hire-me': () => {
+        SFX.termSuccess();
+        SFX.achievement();
+        printLines([
+          { cls: 't-success', text: '🔓 ROOT ACCESS GRANTED' },
+          { cls: 't-info', text: '─── MOHIT\'S RESUME ─────────────────────────' },
+          { cls: 't-out', text: '  📧 mohit@dev.io' },
+          { cls: 't-out', text: '  🔗 github.com/mohitdev' },
+          { cls: 't-out', text: '  💼 linkedin.com/in/mohitdev' },
+          { cls: 't-out', text: '  📄 mohit.dev/resume.pdf' },
+          { cls: 't-out', text: '' },
+          { cls: 't-out', text: '  Available for: Freelance & Full-time Roles' },
+          { cls: 't-out', text: '  Rate: Let\'s talk. I\'m not cheap. I\'m worth it.' },
+          { cls: 't-info', text: '────────────────────────────────────────────' },
+        ]);
+        unlockAchievement('hunter');
+      },
+      clear: () => { output.innerHTML = ''; },
+      'play snake': () => {
+        printLine('🐍 Starting Snake game... (coming soon in v3!)', 't-info');
+        printLine('For now, try "matrix" or "sudo hire-me" for secrets.', 't-out');
+        unlockAchievement('gamer');
+      },
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = input.value.trim().toLowerCase();
+        if (!cmd) return;
+        SFX.termEnter();
+        cmdHistory.unshift(cmd);
+        historyIdx = -1;
+        printPrompt(input.value.trim());
+        input.value = '';
+
+        if (commands[cmd]) {
+          commands[cmd]();
+        } else {
+          SFX.termError();
+          // sarcastic roasts
+          const roasts = [
+            `Command not found: "${cmd}". But keep trying, champ.`,
+            `"${cmd}" — nope. Type "help" you absolute legend.`,
+            `Interesting attempt. That command doesn't exist.`,
+            `sudo make-coffee → Command not found. Try sudo hire-me instead.`,
+            `"${cmd}" threw an exception: NullPointerException (in your brain).`,
+          ];
+          printLine(roasts[Math.floor(Math.random() * roasts.length)], 't-err');
+        }
+      }
+      // Play click for printable characters
+      if (e.key.length === 1) SFX.keyClick();
+      if (e.key === 'Backspace') SFX.keyClick();
+      if (e.key === 'ArrowUp') {
+        SFX.hover();
+        historyIdx = Math.min(historyIdx + 1, cmdHistory.length - 1);
+        input.value = cmdHistory[historyIdx] || '';
+      }
+      if (e.key === 'ArrowDown') {
+        historyIdx = Math.max(historyIdx - 1, -1);
+        input.value = historyIdx >= 0 ? cmdHistory[historyIdx] : '';
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const partial = input.value.trim().toLowerCase();
+        const match = Object.keys(commands).find(c => c.startsWith(partial));
+        if (match) input.value = match;
+      }
+    });
+
+    // ─────────────────────────────────────────────
+    // BOSS FIGHT
+    // ─────────────────────────────────────────────
+    let bossHP = 100;
+    let answers = { q1: null, q2: null, q3: false };
+
+    function selectQ(num, btn, value) {
+      const card = btn.closest('.question-card');
+      card.querySelectorAll('.q-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if (num === 1) answers.q1 = value;
+      if (num === 2) answers.q2 = value;
+      damageBA();
+    }
+
+    function updateQ3() {
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const valid = name.length > 0 && email.includes('@');
+      if (valid && !answers.q3) {
+        answers.q3 = true;
+        damageBA();
+      }
+    }
+
+    function damageBA() {
+      const answered = [answers.q1, answers.q2, answers.q3].filter(Boolean).length;
+      bossHP = 100 - (answered * 33);
+      if (bossHP < 0) bossHP = 0;
+      document.getElementById('hp-fill').style.width = bossHP + '%';
+      document.getElementById('hp-text').textContent = `${bossHP} / 100`;
+      const sprites = ['👾', '😤', '😡', '💀'];
+      document.getElementById('boss-sprite').textContent = sprites[Math.min(answered, 3)];
+      SFX.bossHit();
+      addLog('BOSS', `Boss took damage! HP: ${bossHP}`, 'crit');
+    }
+
+    function defeatBoss() {
+      if (!answers.q1 || !answers.q2 || !answers.q3) {
+        addLog('BOSS', 'Answer all questions to defeat the boss!', 'warn');
+        return;
+      }
+      document.getElementById('hp-fill').style.width = '0%';
+      document.getElementById('hp-text').textContent = '0 / 100';
+      document.getElementById('boss-sprite').textContent = '💀';
+      setTimeout(() => {
+        document.getElementById('boss-questions').style.display = 'none';
+        document.getElementById('boss-victory').style.display = 'block';
+        SFX.bossDefeat();
+        unlockAchievement('boss');
+        addLog('BOSS', 'BOSS DEFEATED. Message sent!', 'crit');
+      }, 600);
+    }
+
+    // ─────────────────────────────────────────────
+    // ACHIEVEMENTS
+    // ─────────────────────────────────────────────
+    const achievements = {
+      curious: { icon: '👁', name: 'Curious Human' },
+      hacker: { icon: '💻', name: 'Elite Hacker' },
+      explorer: { icon: '🗺', name: 'Explorer' },
+      gamer: { icon: '🎮', name: 'True Gamer' },
+      hunter: { icon: '🥚', name: 'Secret Hunter' },
+      boss: { icon: '⚔', name: 'Boss Slayer' },
+      matrix: { icon: '🟩', name: 'Matrix Initiate' },
+      konami: { icon: '⬆', name: 'Konami Master' },
+    };
+
+    const unlocked = new Set();
+
+    function unlockAchievement(key) {
+      if (unlocked.has(key)) return;
+      unlocked.add(key);
+      const a = achievements[key];
+      const badge = document.getElementById('badge-' + key);
+      if (badge) badge.classList.add('unlocked');
+      SFX.achievement();
+
+      const popup = document.getElementById('achieve-popup');
+      document.getElementById('ap-icon').textContent = a.icon;
+      document.getElementById('ap-name').textContent = a.name;
+      popup.style.display = 'block';
+      setTimeout(() => { popup.style.display = 'none'; }, 3500);
+
+      addLog('ACHIEVEMENT', `Unlocked: ${a.name} ${a.icon}`, 'warn');
+    }
+
+    // ─────────────────────────────────────────────
+    // SYSTEM LOG
+    // ─────────────────────────────────────────────
+    function addLog(type, msg, cls) {
+      const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const div = document.createElement('div');
+      div.className = 'log-entry ' + (cls || '');
+      div.innerHTML = `<span class="log-time">[${now}]</span><span class="log-msg">[${type}] ${msg}</span>`;
+      const body = document.getElementById('log-body');
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    // ─────────────────────────────────────────────
+    // MATRIX RAIN EASTER EGG
+    // ─────────────────────────────────────────────
+    function openMatrix() {
+      document.getElementById('matrix-rain').style.display = 'block';
+      SFX.matrixOpen();
+      const canvas = document.getElementById('matrix-canvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+      const cols = Math.floor(canvas.width / 16);
+      const drops = Array(cols).fill(1);
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789アイウエオカキクケ';
+
+      function drawMatrix() {
+        ctx.fillStyle = 'rgba(0,0,0,0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00ff41';
+        ctx.font = '14px Share Tech Mono';
+        drops.forEach((y, i) => {
+          const char = chars[Math.floor(Math.random() * chars.length)];
+          ctx.fillText(char, i * 16, y * 16);
+          if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        });
+      }
+
+      window.matrixInterval = setInterval(drawMatrix, 50);
+      unlockAchievement('matrix');
+    }
+
+    function closeMatrix() {
+      clearInterval(window.matrixInterval);
+      document.getElementById('matrix-rain').style.display = 'none';
+    }
+
+    // ─────────────────────────────────────────────
+    // KONAMI CODE
+    // ─────────────────────────────────────────────
+    const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIdx = 0;
+
+    document.addEventListener('keydown', (e) => {
+      if (document.activeElement === input) return;
+      if (e.key === KONAMI[konamiIdx]) {
+        konamiIdx++;
+        if (konamiIdx === KONAMI.length) {
+          konamiIdx = 0;
+          document.getElementById('konami-msg').style.display = 'flex';
+          SFX.konami();
+          unlockAchievement('konami');
+        }
+      } else {
+        konamiIdx = 0;
+      }
+    });
+
+    function closeKonami() {
+      document.getElementById('konami-msg').style.display = 'none';
+    }
+
+    // Moon click easter egg — click title 5x
+    let titleClicks = 0;
+    document.getElementById('main-title').addEventListener('click', () => {
+      titleClicks++;
+      if (titleClicks >= 5) {
+        titleClicks = 0;
+        openMatrix();
+        addLog('SECRET', 'You found a hidden trigger!', 'warn');
+      }
+    });
+
+    // AFK detection
+    let afkTimer;
+    function resetAFK() {
+      clearTimeout(afkTimer);
+      afkTimer = setTimeout(() => {
+        addLog('INFO', 'AFK detected. Mohit.exe is sleeping... 💤', 'warn');
+        SFX.afk();
+      }, 60000);
+    }
+    document.addEventListener('mousemove', resetAFK);
+    document.addEventListener('keydown', resetAFK);
+    resetAFK();
+  </script>
+</body>
+
+</html>
